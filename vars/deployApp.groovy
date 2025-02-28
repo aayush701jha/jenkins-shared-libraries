@@ -1,10 +1,13 @@
 def call(String appName) {
     script {
-        sh "pm2 delete ${appName} || true"
         sh """
-            pm2 start npm --name '${appName}' -- start
+            if pm2 list | grep -q ${appName}; then
+                pm2 reload ${appName}
+            else
+                pm2 start npm --name '${appName}' -- start
+            fi
             pm2 save
         """
-        echo "🚀 Application '${appName}' Deployed Successfully!"
+        echo "🚀 Zero-Downtime Deployment Done for '${appName}'!"
     }
 }
