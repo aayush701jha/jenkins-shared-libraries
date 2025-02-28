@@ -1,22 +1,13 @@
-def call(String appName, String port) {
+def call(String appName) {
     script {
-        echo "🚀 Starting new instance on port ${port}..."
-
-        // Start the new instance
         sh """
-            pm2 start npm --name '${appName}-new' -- start -- --port=${port}
-            sleep 5  # Give it some time to stabilize
+            if pm2 list | grep -q ${appName}; then
+                pm2 reload ${appName}
+            else
+                pm2 start npm --name '${appName}' -- start
+            fi
+            pm2 save
         """
-
-        echo "🛑 Stopping old instance..."
-        sh "pm2 delete '${appName}' || true"
-
-        echo "🔄 Renaming new instance to ${appName}..."
-        sh "pm2 restart '${appName}-new' --name '${appName}'"
-
-        echo "💾 Saving PM2 state..."
-        sh "pm2 save"
-
-        echo "✅ Deployment completed successfully!"
+        echo "🚀 Zero-Downtime Deployment Done for '${appName}'!"
     }
 }
