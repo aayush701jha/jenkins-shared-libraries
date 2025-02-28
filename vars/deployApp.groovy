@@ -5,6 +5,6 @@ def call(String appName) {
             pm2 start npm --name '${appName}' -- start
             pm2 save
         """
-        echo "✅ Deployment successful for ${appName}"
+        echo "🚀 Application '${appName}' Deployed Successfully!"
     }
 }
