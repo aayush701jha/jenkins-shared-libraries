@@ -1,13 +1,17 @@
-def call(String appName) {
+def call(String appName, String startCmd) {
     script {
+        def newPort = sh(script: "if [ \"$(cat /tmp/active_port)\" = \"8001\" ]; then echo 8002; else echo 8001; fi", returnStdout: true).trim()
+
+        echo "🔄 Deploying new instance on port ${newPort}"
+
         sh """
-            if pm2 list | grep -q ${appName}; then
-                pm2 reload ${appName} --update-env
-            else
-                pm2 start npm --name '${appName}' -- start --watch -i max
-            fi
+            pm2 start ${startCmd} --name '${appName}-${newPort}' -- --port=${newPort} || pm2 restart '${appName}-${newPort}'
             pm2 save
         """
-        echo "🚀 Zero-Downtime Rolling Deployment Done for '${appName}'!"
+
+        sh "echo ${newPort} > /tmp/active_port"
+
+        echo "🚀 New version deployed on ${newPort}, updating Nginx..."
+        sh "sudo nginx -s reload"
     }
 }
